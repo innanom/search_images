@@ -19,31 +19,63 @@ const lightbox = new SimpleLightbox('.gallery a', {
 loadMoreBtnEl.style.display = 'none';
 
 formEl.addEventListener('submit', onSearchImages)
-// loadMoreBtnEl.addEventListener('click', onLoadMore)
+loadMoreBtnEl.addEventListener('click', onLoadMore)
 
 const pixabayApi = new PixabayApi();
+console.log(pixabayApi.fetchFotos());
 
-function onSearchImages(event) {
+async function onSearchImages(event) {
     event.preventDefault();
-    // loadMoreBtnEl.style.display = 'none';
     galleryEl.innerHTML = '';
+    loadMoreBtnEl.style.display = 'none';
+    pixabayApi.page = 1;
+    
 
-    const searchQuery = event.target.elements[0].value.trim();
-    pixabayApi.q = searchQuery;
+    const inputValue = event.target.searchQuery.value.trim();
+    pixabayApi.q = inputValue;
 
-    pixabayApi.fetchFotos()
-//         .then(data => console.log(data))
-// }
-        .then(data => galleryEl.insertAdjacentElement('beforeend', createGalleryCards(data.hits)))
-    .catch(error =>  
-            console.log(error.message))
+    try {
+        const photosResponce = await pixabayApi.fetchFotos()
+        galleryEl.innerHTML = createGalleryCards(photosResponce.data.hits)
+        Notiflix.Notify.success(`Hooray! We found ${photosResponce.data.totalHits} images.`);
+        loadMoreBtnEl.style.display = 'block';
+        
     }
+    catch (error) {
+        console.log(error.message)
+
+    }
+    
+}
+    
+async function onLoadMore(event) {
+    pixabayApi.page += 1;
+    
+    try {
+        const photosResponce = await pixabayApi.fetchFotos()  
+        galleryEl.innerHTML = createGalleryCards(photosResponce.data.hits)
+        
+        if (!photosResponce.data.hits.length) {
+            loadMoreBtnEl.style.display = `none`;
+            Notiflix.Notify.failure("We're sorry, but you've reached the end of search results.")
+            
+            return
+        }
+        
+    }
+    catch (error) {
+        console.log(error.message)
+    }
+    
+      
+}
+
 
   function createGalleryCards(galleryCards) {
-      return galleryCards.map(({ webformatURL, tags, likes, views, comments, downloads, largeImageURL }) => 
-             `<a class="gallery__link" href="${largeImageURL}">
-             <div class="photo-card">
-                    <img src="${webformatURL}" alt="${tags}" loading="lazy" />
+      return galleryCards.map(({ webformatURL, tags, likes, views, comments, downloads, }) => 
+            //  `<a class="gallery__link" href="${largeImageURL}", largeImageURL>
+            `<div class="photo-card">
+                    <img class="gallery__img" src="${webformatURL}" alt="${tags}" loading="lazy" />
                     <div class="info">
                         <p class="info-item">
                         <b>Likes ${likes}</b>
@@ -58,15 +90,9 @@ function onSearchImages(event) {
                         <b>Downloads ${downloads}</b>
                         </p>
                     </div>
-                    </div>
-                </a>`
+                    </div>`
+                // </a>`
         
     ).join("");
 }
 
-// function onLoadMore(event) {
-   
-//     pixabayApi.q = event.target.value;
-
-// pixabayApi.fetchFotos().then(r => console.log(r).catch(consol.log(error.message)))
-// }

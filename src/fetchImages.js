@@ -15,9 +15,11 @@ export class PixabayApi {
             orientation: 'horizontal',
             safesearch: 'true',
             page: this.page,
-            perPage: '40',
+            per_page: '40',
           },
         });
     }
+    
 }
     
+
