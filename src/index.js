@@ -5,13 +5,12 @@ import SimpleLightbox from "simplelightbox";
 import "simplelightbox/dist/simple-lightbox.min.css";
 
 const formEl = document.querySelector('.search-form')
-const inputEl = document.querySelector('[name="searchQuery"]')
-const submitBtnEl = document.querySelector('button[type="submit"]')
+// const inputEl = document.querySelector('[name="searchQuery"]')
+// const submitBtnEl = document.querySelector('button[type="submit"]')
 const loadMoreBtnEl = document.querySelector('.load-more')
 const galleryEl = document.querySelector('.gallery')
 
 const galleryLightbox = new SimpleLightbox('.gallery a', {
-    captionsData: 'alt',
     captionDelay: '250',
 
 });
@@ -42,6 +41,12 @@ async function onSearchImages(event) {
 
     try {
         const photosResponce = await pixabayApi.fetchFotos()
+        
+        if (!photosResponce.data.totalHits) {
+        Notiflix.Notify.failure("Sorry, there are no images matching your search query. Please try again.")
+      
+        return
+    }
         galleryEl.innerHTML = createGalleryCards(photosResponce.data.hits)
         
         Notiflix.Notify.success(`Hooray! We found ${photosResponce.data.totalHits} images.`);
@@ -71,7 +76,7 @@ async function onLoadMore(event) {
             return
         }
         galleryLightbox.refresh();
-        
+
         const { height: cardHeight } = document
         .querySelector(".gallery")
         .firstElementChild.getBoundingClientRect();
