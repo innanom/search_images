@@ -5,8 +5,6 @@ import SimpleLightbox from "simplelightbox";
 import "simplelightbox/dist/simple-lightbox.min.css";
 
 const formEl = document.querySelector('.search-form')
-// const inputEl = document.querySelector('[name="searchQuery"]')
-// const submitBtnEl = document.querySelector('button[type="submit"]')
 const loadMoreBtnEl = document.querySelector('.load-more')
 const galleryEl = document.querySelector('.gallery')
 
