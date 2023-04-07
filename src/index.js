@@ -10,7 +10,7 @@ const submitBtnEl = document.querySelector('button[type="submit"]')
 const loadMoreBtnEl = document.querySelector('.load-more')
 const galleryEl = document.querySelector('.gallery')
 
-const lightbox = new SimpleLightbox('.gallery a', {
+const galleryLightbox = new SimpleLightbox('.gallery a', {
     captionsData: 'alt',
     captionDelay: '250',
 
@@ -34,9 +34,16 @@ async function onSearchImages(event) {
     const inputValue = event.target.searchQuery.value.trim();
     pixabayApi.q = inputValue;
 
+        if (!inputValue) {
+        Notiflix.Notify.info(`Please enter the data for the search query`)
+        
+        return
+    }
+
     try {
         const photosResponce = await pixabayApi.fetchFotos()
         galleryEl.innerHTML = createGalleryCards(photosResponce.data.hits)
+        
         Notiflix.Notify.success(`Hooray! We found ${photosResponce.data.totalHits} images.`);
         loadMoreBtnEl.style.display = 'block';
         
@@ -45,15 +52,17 @@ async function onSearchImages(event) {
         console.log(error.message)
 
     }
-    
+    galleryLightbox.refresh();
 }
     
 async function onLoadMore(event) {
     pixabayApi.page += 1;
     
     try {
-        const photosResponce = await pixabayApi.fetchFotos()  
-        galleryEl.innerHTML = createGalleryCards(photosResponce.data.hits)
+        const photosResponce = await pixabayApi.fetchFotos();
+        galleryEl.innerHTML = createGalleryCards(photosResponce.data.hits);
+        galleryLightbox.refresh();
+
         
         if (!photosResponce.data.hits.length) {
             loadMoreBtnEl.style.display = `none`;
@@ -61,20 +70,26 @@ async function onLoadMore(event) {
             
             return
         }
+        galleryLightbox.refresh();
         
+        const { height: cardHeight } = document
+        .querySelector(".gallery")
+        .firstElementChild.getBoundingClientRect();
+
+        window.scrollBy({
+        top: cardHeight * 2,
+        behavior: "smooth",
+});
     }
     catch (error) {
         console.log(error.message)
     }
-    
-      
 }
 
-
-  function createGalleryCards(galleryCards) {
-      return galleryCards.map(({ webformatURL, tags, likes, views, comments, downloads, }) => 
-            //  `<a class="gallery__link" href="${largeImageURL}", largeImageURL>
-            `<div class="photo-card">
+function createGalleryCards(galleryCards) {
+      return galleryCards.map(({ webformatURL, tags, likes, views, comments, downloads, largeImageURL }) => 
+            `<a class="gallery__link" href="${largeImageURL}">
+                <div class="photo-card">
                     <img class="gallery__img" src="${webformatURL}" alt="${tags}" loading="lazy" />
                     <div class="info">
                         <p class="info-item">
@@ -90,9 +105,9 @@ async function onLoadMore(event) {
                         <b>Downloads ${downloads}</b>
                         </p>
                     </div>
-                    </div>`
-                // </a>`
-        
+                </div>
+            </a>`
+  
     ).join("");
 }
 
