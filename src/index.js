@@ -19,7 +19,7 @@ formEl.addEventListener('submit', onSearchImages)
 loadMoreBtnEl.addEventListener('click', onLoadMore)
 
 const pixabayApi = new PixabayApi();
-console.log(pixabayApi.fetchFotos());
+console.log(pixabayApi.per_page);
 
 async function onSearchImages(event) {
     event.preventDefault();
@@ -39,17 +39,24 @@ async function onSearchImages(event) {
 
     try {
         const photosResponce = await pixabayApi.fetchFotos()
-        
-        if (!photosResponce.data.totalHits) {
-        Notiflix.Notify.failure("Sorry, there are no images matching your search query. Please try again.")
-      
-        return
-    }
-        galleryEl.innerHTML = createGalleryCards(photosResponce.data.hits)
-        
+
+              if (!photosResponce.data.totalHits) {
+            Notiflix.Notify.failure("Sorry, there are no images matching your search query. Please try again.")
+         return
+        }   
+
+        galleryEl.insertAdjacentHTML('beforeend', createGalleryCards(photosResponce.data.hits));
         Notiflix.Notify.success(`Hooray! We found ${photosResponce.data.totalHits} images.`);
         loadMoreBtnEl.style.display = 'block';
-        
+
+        const totalPage = Math.ceil(photosResponce.data.totalHits / pixabayApi.per_page);
+
+        if (totalPage === pixabayApi.page) {
+            loadMoreBtnEl.style.display = `none`;
+            Notiflix.Notify.failure("We're sorry, but you've reached the end of search results.")
+            
+        }
+   
     }
     catch (error) {
         console.log(error.message)
@@ -63,15 +70,18 @@ async function onLoadMore(event) {
     
     try {
         const photosResponce = await pixabayApi.fetchFotos();
-        galleryEl.innerHTML = createGalleryCards(photosResponce.data.hits);
+        galleryEl.insertAdjacentHTML('beforeend', createGalleryCards(photosResponce.data.hits));
         galleryLightbox.refresh();
 
+        const totalPage = Math.ceil(photosResponce.data.totalHits / pixabayApi.per_page);
+        console.log('Результат', totalPage)
+
         
-        if (!photosResponce.data.hits.length) {
+        if (totalPage === pixabayApi.page) {
             loadMoreBtnEl.style.display = `none`;
             Notiflix.Notify.failure("We're sorry, but you've reached the end of search results.")
             
-            return
+            
         }
         galleryLightbox.refresh();
 
