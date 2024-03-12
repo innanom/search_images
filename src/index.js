@@ -19,7 +19,6 @@ formEl.addEventListener('submit', onSearchImages)
 loadMoreBtnEl.addEventListener('click', onLoadMore)
 
 const pixabayApi = new PixabayApi();
-console.log(pixabayApi.per_page);
 
 async function onSearchImages(event) {
     event.preventDefault();
